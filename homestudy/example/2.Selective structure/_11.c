@@ -26,7 +26,5 @@ int main(void)
             printf("가장 큰수는 %d 이다.", num2);
     }
 
-    return 0;
-
-    
+    return 0;   
 }
