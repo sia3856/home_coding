@@ -10,43 +10,62 @@
 #define x_len 50
 // ctrl + shift + l ==> 변수 일괄 변경(드래그 해놓고)
 
-int getch();
-int player_move(int map[][50][50], int xlen, int ylen, int zlen, int *x, int *y, int *p_loc, int *temp);
-int map_move(int map[][50][50], int xlen, int ylen, int zlen, int *x, int *y, int *p_loc);
 
-
-struct Monster
+struct player
 {
-    int maxhp;
-    int hp;
-    int dmg;
-    
+    char name[20];
+    int level;
+    double max_hp;
+    double hp;
+    double dmg;
+    double defence;
+    int max_xp;
+    int xp;
+
 };
 
+
+struct monster
+{
+    int snum;
+    int icon_num;
+    char name[20];
+    double max_hp;
+    double hp;
+    int dmg;
+    int gold;
+    double plus_hp;
+    double tmove_chance;
+    double equip2_chance;
+    int xp;
+};
+
+typedef struct player Player;
+typedef struct monster Monster;
+
+int getch();
+void enter(int num);
+int slot_intro();
+int num_dot(int num);
+void player_move(int map[][50][50], int xlen, int ylen, int zlen, int *x, int *y, int *p_loc, int *money);
+int map_move(int xlen, int ylen, int *x, int *y, int *p_loc);
+void map_print(int map[][50][50], int xlen, int ylen, int zlen, int *x, int *y, int *p_loc);
+
+void monster_make(int map[][50][50], int xlen, int ylen, int zlen, int *x, int *y, int *p_loc, int *pp_loc);
+void slot(int map[][50][50], int *x, int *y, int *p_loc, int *pp_x, int *pp_y, int *mon, int *p1, int *p2, int *p3, int *p4, int *p5, int *p6, int *s_play);
+
+int fight(int map[][50][50], Monster mon_list[], Player *player, Monster *monster, int *x, int *y, int *p_loc, int *pp_x, int *pp_y, int xlen, int ylen);
+int p_fight (int map[][50][50], Monster mon_list[], Player *player, Monster *monster, int *x, int *y, int *p_loc, int *pp_x, int *pp_y);
+int m_fight (int map[][50][50], Monster mon_list[], Player *player, Monster *monster, int *x, int *y, int *p_loc, int *pp_x, int *pp_y);
 
 int main(void)
 {
     // 0: 빈공간, 1: 갈수 없는 곳, 2: 플레이어, 3: 몬스터, 4: 입구, 5: 출구, 
+
     // const int z_len = 8;
     // const int y_len = 10;
     // const int x_len = 10;
 
-    // int map[z_len][y_len][x_len];
-    int z, y, x, loc_x, loc_y, present_loc;
-    //========================== 맵 생성 ===============================
-    // for (z = 0; z < z_len; z++)
-    // {
-    //     for (y = 0; y < y_len; y++)
-    //     {
-    //         for (x = 0; x < x_len; x++)
-    //         {
-    //             map[z][y][x] = 0;
-    //         }
-    //     }
-    //     map[z][0][0] = 4;
-    //     map[z][y_len - 1][x_len - 1] = 5;
-    // }
-    //==================================================================
     
     int map[z_len][y_len][x_len] = {
 {{0,0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	21,	21,	21,	19,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	20,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6,	6},
@@ -450,325 +469,675 @@ int main(void)
 {24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	12,	24,	24,	24,	24,	27,	27,	27,	1,	27,	27,	1,	27,	27,	12,	12,	12,	12,	12,	12,	12,	12},
 {24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	24,	1,	27,	27,	27,	27,	27,	27,	27,	12,	12,	12,	12,	12,	12,	12,	12,	12,	12}}};
 
+    Player player = {"김민석", 1, 100, 100, 10, 0, 100, 0};
 
+//     struct monster
+// {
+//     int snum;
+//     int icon_num;
+//     char name[15];
+//     double max_hp;
+//     double hp;
+//     int dmg;
+//     int gold;
+//     double plus_hp;
+//     double tmove_chance;
+//     double equip2_chance;
+//     int xp;
+// };
+    // 랜덤 변수 : max_hp, dmg, gold
+    Monster mon_list[5] = {
+        {0, -5, "오크전사", 0, 0, 0, 0, 1.01, 0.2, 0, 10},
+        {1, -6, "좀비", 0, 0, 0, 0, 1.02, 0.2, 0, 15},
+        {2, -7, "구울", 0, 0, 0, 0, 1.03, 0.2, 0, 20},
+        {3, -8, "해골", 0, 0, 0, 0, 1.05, 0.2, 0.2, 30},
+        {4, -9, "스파토이", 0, 0, 0, 0, 1.07, 0.2, 0.2, 35}
+    };
+    Monster present_mon;
+
+    int z, y, x, loc_x, loc_y, present_loc;
+    int min_x_view, max_x_view, min_y_view, max_y_view, cnt, temp, pp_loc, pp_loc_x, pp_loc_y;
+    
     loc_x = 0;
     loc_y = 0;
     present_loc = 0;
-    // 0: 마을 // 1 ~ 7: 던전1 ~ 던전7s
-    int temp = 0;
-    map[0][0][0] = 2;
+    pp_loc = 0;
+
+    int money = 10000;
+    int slot_play = 0;
+    int prize1 = 0, prize2 = 0, prize3 = 0, prize4 = 0, prize5 = 0, prize6 = 0;
+
     while (1)
-    {
+    {  
+        system("clear");
+        monster_make(map, x_len, y_len, z_len, &loc_x, &loc_y, &present_loc, &pp_loc);
+
+        pp_loc_x = loc_x;
+        pp_loc_y = loc_y;
+        pp_loc = present_loc;
+
+        
+
+        // int meet_check = 0;
+        // if (present_loc != 0)
+        // {
+            
+        //     for (y = 0; y < y_len; y++)
+        //     {
+        //         for (x = 0; x < x_len; x++)
+        //         {
+        //             if (map[present_loc][y][x] > -10 && map[present_loc][y][x] < -4)
+        //             {
+        //                 printf("현재 y좌표 : %d  x좌표 : %d\n", y, x);
+        //                 printf("현재 플레이어 y좌표 : %d  x좌표 : %d\n", loc_y, loc_x);
+        //                 if (loc_y == y && loc_x == x)
+        //                 {
+        //                     fight(map, mon_list, &player, &loc_x, &loc_y, &present_loc, &pp_loc_x, &pp_loc_y, x_len, y_len);
+        //                     meet_check = 1;
+        //                     break;
+        //                 }
+        //             }
+        //         }
+        //         if (meet_check == 1)
+        //             break;
+        //     }
+        // }  
+        
+        
+        min_x_view = loc_x - 15;
+        max_x_view = loc_x + 15;
+        min_y_view = loc_y - 14;
+        max_y_view = loc_y + 14;
+
+        if (min_y_view < 0)
+        {  
+            max_y_view = max_y_view + (min_y_view * -1);
+            min_y_view = 0;
+        }
+        if (min_x_view < 0)
+        {
+            max_x_view = max_x_view + (min_x_view * -1);
+            min_x_view = 0;
+        }
+        if (max_y_view > 50)
+        {
+            min_y_view = min_y_view - (max_y_view - 50);
+            max_y_view = 50;
+        }
+        if (max_x_view > 50)
+        {
+            min_x_view = min_x_view - (max_x_view - 50);
+            max_x_view = 50;
+        }
+        
+        for (y = min_y_view; y < max_y_view; y++)
+        {
+            for (x = min_x_view; x < max_x_view; x++)
+            {  
+                temp = map[present_loc][loc_y][loc_x];
+                map[present_loc][loc_y][loc_x] = 2;
+                map_print(map, x_len, y_len, z_len, &x, &y, &present_loc);
+                map[present_loc][loc_y][loc_x] = temp;
+            }
+            printf("\n");
+        }
+
+        if (present_loc == 0)
+        {   
+            printf("═════════════════════════════════════════════════════════════════════════════════════════\n");
+            printf(" 현재 장소 : 말하는섬 마을\n");
+        }
+        else
+        {
+            printf("═════════════════════════════════════════════════════════════════════════════════════════\n");
+            printf(" 현재 장소 : 던전 %d 층\n", present_loc);
+        }
+        player_move(map, x_len, y_len, z_len, &loc_x, &loc_y, &present_loc, &money);
+        
+        map_move(x_len, y_len, &loc_x, &loc_y, &present_loc);
+
+        int meet_check = 0;
+        if (present_loc != 0)
+        {
+            
+            for (y = 0; y < y_len; y++)
+            {
+                for (x = 0; x < x_len; x++)
+                {
+                    if (map[present_loc][y][x] > -10 && map[present_loc][y][x] < -4)
+                    {
+                        printf("현재 y좌표 : %d  x좌표 : %d\n", y, x);
+                        printf("현재 플레이어 y좌표 : %d  x좌표 : %d\n", loc_y, loc_x);
+                        if (loc_y == y && loc_x == x)
+                        {
+                            fight(map, mon_list, &player, &present_mon, &loc_x, &loc_y, &present_loc, &pp_loc_x, &pp_loc_y, x_len, y_len);
+                            meet_check = 1;
+                            break;
+                        }
+                    }
+                }
+                if (meet_check == 1)
+                    break;
+            }
+        }  
+
+        
         for (y = 0; y < y_len; y++)
         {
             for (x = 0; x < x_len; x++)
             {
-                switch (map[present_loc][y][x])
+                if (map[present_loc][y][x] == 18)
                 {
-                case 0:
-                    printf(" ▫ ");
-                    break;
-                case 1:
-                    printf(" 🪨");
-                    break;
-                case 2:
-                    printf("🤺 ");
-                    break;
-                case 3:
-                    printf(" 💀");
-                    break;
-                case 4:
-                    printf(" ⛩ ");
-                    break;
-                case 5:
-                    printf(" ➡ ");
-                    break;                
-                case 6:
-                    printf(" 🟦");
-                    break;
-                case 7:
-                    printf(" 🪜");
-                    break;
-                case 8:
-                    printf(" 🚢");
-                    break;
-                case 9:
-                    printf(" 🏰");
-                    break;
-                case 10:
-                    printf(" 🏠");
-                    break;
-                case 11:
-                    printf(" 💰");
-                    break;
-                case 12:
-                    printf(" 🔥");
-                    break;
-                case 13:
-                    printf(" 🌳");
-                    break;
-                case 14:
-                    printf(" ⛲");
-                    break;
-                case 15:
-                    printf(" 🔨");
-                    break;
-                case 16:
-                    printf(" 🛡️ ");
-                    break;
-                case 17:
-                    printf(" 🔮");
-                    break;
-                case 18:
-                    printf(" 🎰");
-                    break;
-                case 19:
-                    printf(" 🌊");
-                    break;
-                case 20:
-                    printf(" 🕊️ ");
-                    break;
-                case 21:
-                    printf(" 🟨");
-                    break;
-                case 22:
-                    printf(" 🧱");
-                    break;
-                case 23:
-                    printf(" 🌲");
-                    break;
-                case 24:
-                    printf(" 🟥");
-                    break;
-                case 25:
-                    printf(" 🌵");
-                    break;
-                case 26:
-                    printf(" 🌴");
-                    break;
-                case 27:
-                    printf(" 🌋");          
-                    break;
-                case 28:
-                    printf(" 🌼");
-                    break;
-                case 29:
-                    printf(" 🌸");
-                    break;
-                case 30:
-                    printf(" 🍄");
-                    break;
-                case 31:
-                    printf(" 🔯");          
-                    break;
-                case 32:
-                    printf(" 🏔️ ");
-                    break;
-                case 33:
-                    printf(" ❄️ ");
-                    break;
-                case 34:
-                    printf(" ⬜");
-                    break;
-                case 35:
-                    printf(" 🐅");          
-                    printf(" 🪻 ");  
-                    break;
-                case 38:
-                    printf(" ╔");
-                    break;
-                case 39:
-                    printf(" ═");
-                    break;
-                case 40:
-                    printf(" ╗");
-                    break;
-                case -1:
-                    printf(" 👿");
-                    break;
-                case -2:
-                    printf(" 🐻");
-                    break;
-                case -3:
-                    printf(" 🐐");
-                    break;
-                case -4:
-                    printf(" 🧑");          
-                    break;
-                default:
-                    break;
+                    if (loc_y == y && loc_x == x)
+                    {
+                        slot(map, &loc_x, &loc_y, &present_loc, &pp_loc_x, &pp_loc_y, &money, &prize1, &prize2, &prize3, &prize4, &prize5, &prize6, &slot_play);
+                    }
                 }
             }
-            printf("\n");
         }
-       
-        if (present_loc == 0)
-            printf("현재 장소 : 마을\n");
-        else
-            printf("현재 장소 : 던전 %d 층\n", present_loc);
-        //printf("00 ====> %d\n", map[present_loc+1][0][0]);
+        
+        
+        
+        //map[*p_loc][yy][xx] == -5 || map[*p_loc][yy][xx] == -6 || map[*p_loc][yy][xx] == -7 || map[*p_loc][yy][xx] == -8 || map[*p_loc][yy][xx] == -9
+        //map[present_loc][y][x] > -10 && map[present_loc][y][x] < -4
+        
 
-        temp = player_move(map, x_len, y_len, z_len, &loc_x, &loc_y, &present_loc, &temp);
-
-        map_move(map, x_len, y_len, z_len, &loc_x, &loc_y, &present_loc);
-        printf("아무거나\n");
-        system("clear");
+        
     }
 
     return 0;
 }
 
-int player_move(int map[][50][50], int xlen, int ylen, int zlen, int *x, int *y, int *p_loc, int *tmp)
+
+void player_move(int map[][50][50], int xlen, int ylen, int zlen, int *x, int *y, int *p_loc,int *money)
 {
     int temp, temp1, temp2, temp3;
 
-    
+
     char move = 0;
 
+    printf(" 좌표(x,y)(%d,%d)\n", *x, *y);
+    printf("      🅆                                               이름 : 복이     직업 : 전설의 용사  \n");
+    printf("      ⬆    \n");
+    printf(" 🄰 ⬅     ⮕ 🄳                                            🄸  : 가방       🄾  : 스테이터스\n");
+    printf("      ⬇   \n");
+    printf("      🅂                                                                   돈 : %d원\n", *money);
     printf("\n");
-    printf("   w     \n");
-    printf("   ↟    \n");
-    printf("a↞  ↠d 플레이어(x,y) %d,%d\n", *x, *y);
-    printf("   ↡    \n");
-    printf("   s     >> %c", move);
+    printf("═════════════════════════════════════════════════════════════════════════════════════════\n");
     move = getch();
 
     if (move == 65 || move == 97) // ↞a
     {
         // 움직이는 방향의 좌표가 이동 가능하면,
-        if (*x > 0)
-        {
-            if (map[*p_loc][*y][(*x)-1] != 1 && map[*p_loc][*y][(*x)-1] != 6 && map[*p_loc][*y][(*x)-1] != 10 && map[*p_loc][*y][(*x)-1] != 12 && map[*p_loc][*y][(*x)-1] != 13 && map[*p_loc][*y][(*x)-1] != 19 && map[*p_loc][*y][(*x)-1] != 22 && map[*p_loc][*y][(*x)-1] != 23 && map[*p_loc][*y][(*x)-1] != 24 && map[*p_loc][*y][(*x)-1] != 25 && map[*p_loc][*y][(*x)-1] != 26 && map[*p_loc][*y][(*x)-1] != 28 && map[*p_loc][*y][(*x)-1] != 29 && map[*p_loc][*y][(*x)-1] != 30 && map[*p_loc][*y][(*x)-1] != 32 && map[*p_loc][*y][(*x)-1] != 34 && map[*p_loc][*y][(*x)-1] != 37)
-            {
-                temp1 = map[*p_loc][*y][(*x)-1];
-                *x -= 1;
-                map[*p_loc][*y][*x] = 2;
-
-                if (*tmp != temp1)
-                {
-                    map[*p_loc][*y][(*x)+1] = *tmp;
-                }
-                else
-                {
-                    map[*p_loc][*y][(*x)+1] = temp1;
-                }
-            }
-        }
-        // break;
+        if (*x > 0 && map[*p_loc][*y][(*x)-1] != 1 && map[*p_loc][*y][(*x)-1] != 6 && map[*p_loc][*y][(*x)-1] != 10 && map[*p_loc][*y][(*x)-1] != 12 && map[*p_loc][*y][(*x)-1] != 13 && map[*p_loc][*y][(*x)-1] != 19 && map[*p_loc][*y][(*x)-1] != 22 && map[*p_loc][*y][(*x)-1] != 23 && map[*p_loc][*y][(*x)-1] != 24 && map[*p_loc][*y][(*x)-1] != 25 && map[*p_loc][*y][(*x)-1] != 26 && map[*p_loc][*y][(*x)-1] != 28 && map[*p_loc][*y][(*x)-1] != 29 && map[*p_loc][*y][(*x)-1] != 30 && map[*p_loc][*y][(*x)-1] != 32 && map[*p_loc][*y][(*x)-1] != 34 && map[*p_loc][*y][(*x)-1] != 37)
+        {        
+            *x -= 1;
+        }            
     }
     else if (move == 68 || move == 100) // d↠
     {
         // 움직이는 방향의 좌표가 이동 가능하면,
-        if (*x < xlen - 1)
+       
+        if (*x < xlen-1 && map[*p_loc][*y][(*x)+1] != 1 && map[*p_loc][*y][(*x)+1] != 6 && map[*p_loc][*y][(*x)+1] != 10 && map[*p_loc][*y][(*x)+1] != 12 && map[*p_loc][*y][(*x)+1] != 13 && map[*p_loc][*y][(*x)+1] != 19 && map[*p_loc][*y][(*x)+1] != 22 && map[*p_loc][*y][(*x)+1] != 23 && map[*p_loc][*y][(*x)+1] != 24 && map[*p_loc][*y][(*x)+1] != 25 && map[*p_loc][*y][(*x)+1] != 26 && map[*p_loc][*y][(*x)+1] != 28 && map[*p_loc][*y][(*x)+1] != 29 && map[*p_loc][*y][(*x)+1] != 30 && map[*p_loc][*y][(*x)+1] != 32 && map[*p_loc][*y][(*x)+1] != 34 && map[*p_loc][*y][(*x)+1] != 37)
         {
-            if (map[*p_loc][*y][(*x)+1] != 1 && map[*p_loc][*y][(*x)+1] != 6 && map[*p_loc][*y][(*x)+1] != 10 && map[*p_loc][*y][(*x)+1] != 12 && map[*p_loc][*y][(*x)+1] != 13 && map[*p_loc][*y][(*x)+1] != 19 && map[*p_loc][*y][(*x)+1] != 22 && map[*p_loc][*y][(*x)+1] != 23 && map[*p_loc][*y][(*x)+1] != 24 && map[*p_loc][*y][(*x)+1] != 25 && map[*p_loc][*y][(*x)+1] != 26 && map[*p_loc][*y][(*x)+1] != 28 && map[*p_loc][*y][(*x)+1] != 29 && map[*p_loc][*y][(*x)+1] != 30 && map[*p_loc][*y][(*x)+1] != 32 && map[*p_loc][*y][(*x)+1] != 34 && map[*p_loc][*y][(*x)+1] != 37)
-            {
-                temp1 = map[*p_loc][*y][(*x)+1];
-                
-                *x += 1;
-                map[*p_loc][*y][*x] = 2;
-
-                if (*tmp != temp1)
-                {  
-                    map[*p_loc][*y][(*x)-1] = *tmp;
-                }
-                else 
-                {    
-                    map[*p_loc][*y][(*x)-1] = temp1;
-                }  
-            }     
-
-        }
-        // break;
+            *x += 1;              
+        }     
     }
     else if (move == 87 || move == 119) // w위로
     {
         // 움직이는 방향의 좌표가 이동 가능하면,
-        if (*y > 0)
-        {
-            if (map[*p_loc][(*y)-1][*x] != 1 && map[*p_loc][(*y)-1][*x] != 6 && map[*p_loc][(*y)-1][*x] != 10 && map[*p_loc][(*y)-1][*x] != 12 && map[*p_loc][(*y)-1][*x] != 13 && map[*p_loc][(*y)-1][*x] != 19 && map[*p_loc][(*y)-1][*x] != 22 && map[*p_loc][(*y)-1][*x] != 23 && map[*p_loc][(*y)-1][*x] != 24 && map[*p_loc][(*y)-1][*x] != 25 && map[*p_loc][(*y)-1][*x] != 26 && map[*p_loc][(*y)-1][*x] != 28 && map[*p_loc][(*y)-1][*x] != 29 && map[*p_loc][(*y)-1][*x] != 30 && map[*p_loc][(*y)-1][*x] != 32 && map[*p_loc][(*y)-1][*x] != 34 && map[*p_loc][(*y)-1][*x] != 37)
-            {
-                temp1 = map[*p_loc][(*y)-1][*x];
-
-                *y -= 1;
-                map[*p_loc][*y][*x] = 2;
-
-                if (*tmp != temp1)
-                {
-                    map[*p_loc][(*y)+1][*x] = *tmp;
-                }
-                else
-                {
-                    map[*p_loc][(*y)+1][*x] = temp1;
-                }
-            }            
-        }
-        // break;
+        
+        if (*y > 0 && map[*p_loc][(*y)-1][*x] != 1 && map[*p_loc][(*y)-1][*x] != 6 && map[*p_loc][(*y)-1][*x] != 10 && map[*p_loc][(*y)-1][*x] != 12 && map[*p_loc][(*y)-1][*x] != 13 && map[*p_loc][(*y)-1][*x] != 19 && map[*p_loc][(*y)-1][*x] != 22 && map[*p_loc][(*y)-1][*x] != 23 && map[*p_loc][(*y)-1][*x] != 24 && map[*p_loc][(*y)-1][*x] != 25 && map[*p_loc][(*y)-1][*x] != 26 && map[*p_loc][(*y)-1][*x] != 28 && map[*p_loc][(*y)-1][*x] != 29 && map[*p_loc][(*y)-1][*x] != 30 && map[*p_loc][(*y)-1][*x] != 32 && map[*p_loc][(*y)-1][*x] != 34 && map[*p_loc][(*y)-1][*x] != 37)
+        {   
+            *y -= 1;
+        }             
     }
     else if (move == 83 || move == 115) // s아래로
     {
         // 움직이는 방향의 좌표가 이동 가능하면,
-        if (*y < ylen - 1)
+        if (*y < ylen - 1 && map[*p_loc][(*y)+1][*x] != 1 && map[*p_loc][(*y)+1][*x] != 6 && map[*p_loc][(*y)+1][*x] != 10 && map[*p_loc][(*y)+1][*x] != 12 && map[*p_loc][(*y)+1][*x] != 13 && map[*p_loc][(*y)+1][*x] != 19 && map[*p_loc][(*y)+1][*x] != 22 && map[*p_loc][(*y)+1][*x] != 23 && map[*p_loc][(*y)+1][*x] != 24 && map[*p_loc][(*y)+1][*x] != 25 && map[*p_loc][(*y)+1][*x] != 26 && map[*p_loc][(*y)+1][*x] != 28 && map[*p_loc][(*y)+1][*x] != 29 && map[*p_loc][(*y)+1][*x] != 30 && map[*p_loc][(*y)+1][*x] != 32 && map[*p_loc][(*y)+1][*x] != 34 && map[*p_loc][(*y)+1][*x] != 37)
         {
-            if (map[*p_loc][(*y)+1][*x] != 1 && map[*p_loc][(*y)+1][*x] != 6 && map[*p_loc][(*y)+1][*x] != 10 && map[*p_loc][(*y)+1][*x] != 12 && map[*p_loc][(*y)+1][*x] != 13 && map[*p_loc][(*y)+1][*x] != 19 && map[*p_loc][(*y)+1][*x] != 22 && map[*p_loc][(*y)+1][*x] != 23 && map[*p_loc][(*y)+1][*x] != 24 && map[*p_loc][(*y)+1][*x] != 25 && map[*p_loc][(*y)+1][*x] != 26 && map[*p_loc][(*y)+1][*x] != 28 && map[*p_loc][(*y)+1][*x] != 29 && map[*p_loc][(*y)+1][*x] != 30 && map[*p_loc][(*y)+1][*x] != 32 && map[*p_loc][(*y)+1][*x] != 34 && map[*p_loc][(*y)+1][*x] != 37)
-            {
-                temp1 = map[*p_loc][(*y)+1][*x];
-                
-                *y += 1;
-                map[*p_loc][*y][*x] = 2;
+            *y += 1;  
+        }
+    }
+}
+  
 
-                if (*tmp != temp1)
+int map_move(int xlen, int ylen, int *x, int *y, int *p_loc)
+{
+    if (*p_loc < 7 && *y == (ylen-1) && *x == (xlen-1))
+    {
+        *p_loc += 1;
+        *x = 0;
+        *y = 0;
+        return 0;
+    }
+    if (*p_loc > 0 && *y == 0 && *x == 0)
+    {
+        *p_loc -= 1;
+        *x = xlen-1;
+        *y = ylen-1;
+        return 0;
+    }
+}
+
+int fight(int map[][50][50], Monster mon_list[], Player *player, Monster *monster, int *x, int *y, int *p_loc, int *pp_x, int *pp_y, int xlen, int ylen)
+{   
+    system("clear");
+    
+    int num;
+    int run_check;
+
+    
+
+    for (int i = 0; i < 5; i++)
+    {
+        if (map[*p_loc][*y][*x] == mon_list[i].icon_num)
+        {
+            *monster = mon_list[i];
+        }
+    }
+    // x : 31칸 / y :29칸
+    
+    while (1)
+    {
+        system("clear");
+        printf("═════════════════════════════════════════════════════════════════════════════════════════\n");
+        enter(19);
+        printf("═════════════════════════════════════════════════════════════════════════════════════════\n");
+        enter(6);
+        printf("═════════════════════════════════════════════════════════════════════════════════════════\n");
+        printf("몬스터를 만났다!!!!!!!!!!\n");
+        printf("몬스터 번호 : %d\n", map[*p_loc][*y][*x]);
+        printf("현재 몬스터 이름 : %s\n", monster->name);
+        run_check = p_fight(map, mon_list, player, monster, x, y, p_loc, pp_x, pp_y);
+
+        if(run_check == 0) break;
+
+        m_fight(map, mon_list, player, monster, x, y, p_loc, pp_x, pp_y);
+
+    }
+    
+}
+
+int p_fight (int map[][50][50], Monster mon_list[], Player *player, Monster *monster, int *x, int *y, int *p_loc, int *pp_x, int *pp_y)
+{
+    char move = 0;
+    printf("1. 기본공격  2. 아이템 사용  3. 도망\n");
+    move = getch();
+
+    if (move == 51)
+    {
+        printf("3번 입력\n");
+        *x = *pp_x;
+        *y = *pp_y;
+        return 0;
+    }
+}
+int m_fight (int map[][50][50], Monster mon_list[], Player *player, Monster *monster, int *x, int *y, int *p_loc, int *pp_x, int *pp_y)
+{
+
+}
+
+
+
+void monster_make(int map[][50][50], int xlen, int ylen, int zlen, int *x, int *y, int *p_loc, int *pp_loc)
+{   
+    int ran_num, yy, xx;
+    
+    srand(time(NULL));
+    if(*pp_loc != *p_loc)
+    {
+        for (yy = 0; yy < ylen ; yy++)
+        {
+            for (xx = 0; xx < xlen; xx++)
+            {   
+                if(map[*p_loc][yy][xx] == 3)
                 {
-                    map[*p_loc][(*y)-1][*x] = *tmp;
+                    ran_num = rand() %100 + 1;
+                    // -5 오크전사, -6 좀비, -7 구울, -8 해골, -9 스파토이
+                    switch (*p_loc)
+                    {
+                    case 1:
+                        if (ran_num < 51)
+                            map[*p_loc][yy][xx] = -5;
+                        else
+                            map[*p_loc][yy][xx] = 41;
+                        break;
+                    case 2:
+                        if (ran_num < 51)
+                            map[*p_loc][yy][xx] = -6;
+                        else
+                            map[*p_loc][yy][xx] = 41;
+                        break;
+                    case 3:
+                        if (ran_num < 26)
+                            map[*p_loc][yy][xx] = -6;
+                        else if (ran_num < 51)
+                            map[*p_loc][yy][xx] = -7;
+                        else
+                            map[*p_loc][yy][xx] = 41;
+                        break;
+                    case 4:
+                        if (ran_num < 11)
+                            map[*p_loc][yy][xx] = -6;
+                        else if (ran_num < 36)
+                            map[*p_loc][yy][xx] = -7;
+                        else if (ran_num < 61)
+                            map[*p_loc][yy][xx] = -8;
+                        else
+                            map[*p_loc][yy][xx] = 41;
+                        break;
+                    case 5:
+                        if (ran_num < 11)
+                            map[*p_loc][yy][xx] = -7;
+                        else if (ran_num < 36)
+                            map[*p_loc][yy][xx] = -8;
+                        else if (ran_num < 61)
+                            map[*p_loc][yy][xx] = -9;
+                        else
+                            map[*p_loc][yy][xx] = 41;
+                        break;
+                    case 6:
+                        if (ran_num < 11)
+                            map[*p_loc][yy][xx] = -7;
+                        else if (ran_num < 31)
+                            map[*p_loc][yy][xx] = -8;
+                        else if (ran_num < 61)
+                            map[*p_loc][yy][xx] = -9;
+                        else
+                            map[*p_loc][yy][xx] = 41;
+                        break;
+                    case 7:
+                        if (ran_num < 61)
+                            map[*p_loc][yy][xx] = -9;
+                        else
+                            map[*p_loc][yy][xx] = 41;
+                        break;
+                    default:
+                        break;
+                    }
                 }
-                else
+
+                if (map[*pp_loc][yy][xx] == 41 || map[*pp_loc][yy][xx] == -5 || map[*pp_loc][yy][xx] == -6 || map[*pp_loc][yy][xx] == -7 || map[*pp_loc][yy][xx] == -8 || map[*pp_loc][yy][xx] == -9)
                 {
-                    map[*p_loc][(*y)-1][*x] = temp1;
+                    map[*pp_loc][yy][xx] = 3;
                 }
             }
         }
-        // break;       
     }
-
-    if (map[*p_loc][0][0] != 2)
-        map[*p_loc][0][0] = 4;
-    if (map[*p_loc][ylen - 1][xlen - 1] != 2)
-        map[*p_loc][ylen - 1][xlen - 1] = 5;
-
-    return temp1;
-    // system("clear");
 }
 
-int map_move(int map[][50][50], int xlen, int ylen, int zlen, int *x, int *y, int *p_loc)
+void slot(int map[][50][50], int *x, int *y, int *p_loc, int *pp_x, int *pp_y, int *mon, int *p1, int *p2, int *p3, int *p4, int *p5, int *p6, int *s_play)
 {
-    int cnum, scan;
+    system("clear");
+    enter(15);
+    slot_intro();
+    printf("========================슬롯 머신 실행1=====================\n");
+    
+    int num = 0;
+    int in_money = 0;
+    int prize[5] = {10, 5, 3, 2, 1}; 
+    int num2;
+    srand(time(NULL));
+    while(1) {
+        
 
-    if(*p_loc < 7)
-    {
-        if (map[*p_loc][ylen-1][xlen-1] == 2 )
-        {
-            map[*p_loc][ylen-1][xlen-1] = 5;
-            *p_loc += 1;
-            map[*p_loc][0][0] = 2;
-            
-            *x = 0;
-            *y = 0;
-            return 0;
+        printf("현재 잔액: %d원\n", *mon);
+        if (*mon <= 0) {
+            printf("돈이 모두 소진되었습니다. 게임을 종료합니다.\n");
+            *x = *pp_x;
+            *y = *pp_y;
+            break;
         }
+
+        printf("배팅할 금액을 입력하세요 (0을 입력하면 종료): ");
+        scanf("%d", &in_money);
+
+        if (in_money == 0) {
+            printf("게임을 종료합니다.\n");
+            printf("최종 결과 - 잔액: %d원\n", *mon);
+            printf("1등: %d번, 2등: %d번, 3등: %d번, 4등: %d번, 5등: %d번, 6등: %d번\n", *p1, *p2, *p3, *p4, *p5, *p6);
+            printf("총 도박 횟수: %d \n", *s_play);
+            *x = *pp_x;
+            *y = *pp_y;
+            break;
+        }
+
+        if (in_money > *mon) {
+            printf("잔액이 부족합니다. 다시 입력하세요.\n");
+            sleep(1);
+            system("clear");
+            continue;
+        }
+
+        *mon -= in_money;
+        num = (rand() % 100) + 1;
+        for(int cnt = 0; cnt<10; cnt++)
+        {
+            system("clear");
+            num2 = rand()%6 +1;
+            enter(15);
+            num_dot(num2);
+            usleep(300000);
+            
+        }
+        system("clear");
+
+        if (num <= 3) {
+            (*p1)++;
+            (*s_play)++;
+            *mon += in_money * prize[0];
+            enter(15);
+            num_dot(1);
+            printf("1등 당첨! 상금: %d원\n", in_money * prize[0]);
+        }
+        else if (num <= 9) {
+            (*p2)++;
+            (*s_play)++;
+            *mon += in_money * prize[1];
+            enter(15);
+            num_dot(2);
+            printf("2등 당첨! 상금: %d원\n", in_money * prize[1]);
+        }
+        else if (num <= 18) {
+            (*p3)++;
+            (*s_play)++;
+            *mon += in_money * prize[2];
+            enter(15);
+            num_dot(3);
+            printf("3등 당첨! 상금: %d원\n", in_money * prize[2]);
+        }
+        else if (num <= 32) {
+            (*p4)++;
+            (*s_play)++;
+            *mon += in_money * prize[3];
+            enter(15);
+            num_dot(4);
+            printf("4등 당첨! 상금: %d원\n", in_money * prize[3]);
+        }
+        else if (num <= 60) {
+            (*p5)++;
+            (*s_play)++;
+            *mon += in_money * prize[4];
+            enter(15);
+            num_dot(5);
+            printf("5등 당첨! 상금: %d원\n", in_money * prize[4]);
+        }
+        else {
+            (*p6)++;
+            (*s_play)++;
+            enter(15);
+            num_dot(6);
+            printf("꽝! 상금을 받지 못했습니다.\n");
+        }
+
+        printf("현재 잔액: %d원\n", *mon);
     }
-    if(*p_loc > 0)
+}
+
+
+
+void map_print(int map[][50][50], int xlen, int ylen, int zlen, int *x, int *y, int *p_loc)
+{
+    switch (map[*p_loc][*y][*x])
     {
-        if (map[*p_loc][0][0] == 2)
-        {
-            map[*(p_loc)][0][0] = 4;
-            *p_loc -= 1;
-            map[*p_loc][ylen-1][xlen-1] = 2;
-            
-            *x = xlen-1;
-            *y = ylen-1;
-            return 0;
-        }
-    }   
+    case 0:
+        printf(" ▫ ");
+        break;
+    case 1:
+        printf(" 🪨");
+        break;
+    case 2:
+        printf("🤺 ");
+        break;
+    case 3:
+        printf(" 💀");
+        break;
+    case 4:
+        printf(" ⛩ ");
+        break;
+    case 5:
+        printf(" ➡ ");
+        break;                
+    case 6:
+        printf(" 🟦");
+        break;
+    case 7:
+        printf(" 🪜");
+        break;
+    case 8:
+        printf(" 🚢");
+        break;
+    case 9:
+        printf(" 🏰");
+        break;
+    case 10:
+        printf(" 🏠");
+        break;
+    case 11:
+        printf(" 💰");
+        break;
+    case 12:
+        printf(" 🔥");
+        break;
+    case 13:
+        printf(" 🌳");
+        break;
+    case 14:
+        printf(" ⛲");
+        break;
+    case 15:
+        printf(" 🔨");
+        break;
+    case 16:
+        printf(" 🛡️ ");
+        break;
+    case 17:
+        printf(" 🔮");
+        break;
+    case 18:
+        printf(" 🎰");
+        break;
+    case 19:
+        printf(" 🌊");
+        break;
+    case 20:
+        printf(" 🕊️ ");
+        break;
+    case 21:
+        printf(" 🟨");
+        break;
+    case 22:
+        printf(" 🧱");
+        break;
+    case 23:
+        printf(" 🌲");
+        break;
+    case 24:
+        printf(" 🟥");
+        break;
+    case 25:
+        printf(" 🌵");
+        break;
+    case 26:
+        printf(" 🌴");
+        break;
+    case 27:
+        printf(" 🌋");          
+        break;
+    case 28:
+        printf(" 🌼");
+        break;
+    case 29:
+        printf(" 🌸");
+        break;
+    case 30:
+        printf(" 🍄");
+        break;
+    case 31:
+        printf(" 🔯");          
+        break;
+    case 32:
+        printf(" 🏔️ ");
+        break;
+    case 33:
+        printf(" ❄️ ");
+        break;
+    case 34:
+        printf(" ⬜");
+        break;
+    case 35:
+        printf(" 🐅");          
+        break;
+    case 36:
+        printf(" ⛄");
+        break;
+    case 37:
+        printf(" 🪻 ");  
+        break;
+    case 38:
+        printf(" ╔   ");
+        break;
+    case 39:
+        printf(" ═");
+        break;
+    case 40:
+        printf(" ╗");
+        break;
+    case 41:
+        printf(" ▫ ");
+        break;
+    case -1:
+        printf(" 👿");
+        break;
+    case -2:
+        printf(" 🐻");
+        break;
+    case -3:
+        printf(" 🐐");
+        break;
+    case -4:
+        printf(" 🧑");          
+        break;
+    case -5:
+        printf(" 👹");
+        break;
+    case -6:
+        printf(" 🧟");
+        break;
+    case -7:
+        printf(" 🧌");
+        break;
+    case -8:
+        printf(" 💀");          
+        break;
+    case -9:
+        printf(" 👾");
+        break;
+    default:
+        break;
+    }
 }
 
 
@@ -786,4 +1155,119 @@ int getch()
     c = getchar();                              // 키보드 입력 읽음
     tcsetattr(STDIN_FILENO, TCSANOW, &oldattr); // 원래의 설정으로 복구
     return c;
+}
+
+void enter(int num)
+{
+    for(int i = 0; i < num; i++)
+        printf("\n");
+}
+int slot_intro()
+{
+    printf("   ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+    printf("   ⬜️ 🟥 🟥 🟥 🟥 🟥 ⬜️   ⬜️ 🟥 🟥 🟥 🟥 🟥 ⬜️   ⬜️ 🟥 🟥 🟥 🟥 🟥 ⬜️ \n");
+    printf("   ⬜️ 🟥 ⬜️ ⬜️ ⬜️ 🟥 ⬜️   ⬜️ 🟥 ⬜️ ⬜️ ⬜️ 🟥 ⬜️   ⬜️ 🟥 ⬜️ ⬜️ ⬜️ 🟥 ⬜️ \n");
+    printf("   ⬜️ 🟥 ⬜️ ⬜️ 🟥 ⬜️ ⬜️   ⬜️ 🟥 ⬜️ ⬜️ 🟥 ⬜️ ⬜️   ⬜️ 🟥 ⬜️ ⬜️ 🟥 ⬜️ ⬜️ \n");
+    printf("   ⬜️ ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ \n");
+    printf("   ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️ \n");
+    printf("   ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️ \n");
+    printf("   ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️ \n");
+    printf("   ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+    usleep(1500000);
+    system("clear");
+}
+int num_dot(int num)
+{   
+    switch(num){
+        case 1:
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬛️ ⬛️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬛️ ⬛️ ⬛️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            break;
+        case 2:
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬛️ ⬛️ ⬛️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            break;
+        case 3:
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            break;
+        case 4:
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬛️ ⬜️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬛️ ⬛️ ⬛️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            break;
+        case 5:
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬛️ ⬛️ ⬛️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            break;
+        case 6:
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            break;
+        case 7:
+            printf("⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("⬜️ 🟥 🟥 🟥 🟥 🟥 ⬜️ \n");
+            printf("⬜️ 🟥 ⬜️ ⬜️ ⬜️ 🟥 ⬜️ \n");
+            printf("⬜️ 🟥 ⬜️ ⬜️ 🟥 ⬜️ ⬜️ \n");
+            printf("⬜️ ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ \n");
+            printf("⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            break;
+        case 8:
+            printf("⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("⬜️ ⬜️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("⬜️ ⬛️ ⬜️ ⬛️ ⬜️ ⬛️ ⬜️ \n");
+            printf("⬜️ ⬛️ ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ \n");
+            printf("⬜️ ⬜️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("⬜️ ⬜️ ⬜️ ⬛️ ⬜️ ⬛️ ⬜️ \n");
+            printf("⬜️ ⬛️ ⬜️ ⬛️ ⬜️ ⬛️ ⬜️ \n");
+            printf("⬜️ ⬜️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            break;
+
+
+    }
 }
