@@ -1480,8 +1480,10 @@ int p_bag_print(int bag[bag_z][bag_y][bag_x],int *x, int *y)
                     system("clear");
                     enter(3);
                     for (int i = 0; i <= 10; i++)
+                    if(bag[i][0][0] !=0){
                         printf("          %d : 기본검 +%d강 %d개\n\n", i, i, bag[i][0][0]);
-                    printf("          10번은 ~를 입력하시오.");
+                        printf("          10번은 ~를 입력하시오.");
+                    }
                 }
                 else if (select == 50)
                 {
