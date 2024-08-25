@@ -124,7 +124,9 @@ void tel_scl(int *x, int *y,int *p_loc,int *s_loc_x, int *s_loc_y,int *s_loc_z,I
 int skill_use(int map[][50][50], Monster mon_list[], Player *player, Monster *p_monster, int *x, int *y, int *p_loc, int *pp_x, int *pp_y, char p_string[], char p_string1[], char p_string2[], char p_string3[], char p_string4[], char p_string5[]);
 void use_hpotion(double *hp, double *m_hp, int *potion_count, int amount, const char *type);
 void use_mpotion(int *mp, int *m_mp, int *potion_count, int amount, const char *type );
-int h_spot(int map[][50][50], int *x, int *y, int *p_loc, int *pp_x, int *pp_y,int bag[bag_z][bag_y][bag_x] ,Player *player);
+void h_spot(int map[][50][50], int *x, int *y, int *p_loc, int *pp_x, int *pp_y,Player *player);
+int lve_spot(int map[][50][50], int *x, int *y, int *p_loc, int *pp_x, int *pp_y, Player *player);
+void lv_s_up(int num, Player *player);
 
 int main(void)
 {
@@ -728,7 +730,14 @@ int main(void)
                 {
                     if (loc_y == y && loc_x == x)
                     {
-                        h_spot(map, &loc_x, &loc_y, &present_loc, &pp_loc_x, &pp_loc_y,bag,&player);
+                        h_spot(map, &loc_x, &loc_y, &present_loc, &pp_loc_x, &pp_loc_y, &player);
+                    }
+                }
+                else if (map[present_loc][y][x] == 17 )
+                {
+                    if (loc_y == y && loc_x == x)
+                    {
+                        lve_spot(map, &loc_x, &loc_y, &present_loc, &pp_loc_x, &pp_loc_y,&player);
                     }
                 }
             }
@@ -793,7 +802,7 @@ void player_move(int map[][50][50], int xlen, int ylen, int zlen, int *x, int *y
         p_bag_print(bag,x, y,p_loc,player, s_loc_x, s_loc_y, s_loc_z,item);
     }
 }
-  
+
 int map_move(int xlen, int ylen, int *x, int *y, int *p_loc,Item *item)
 {
     if (*p_loc < 7 && *y == (ylen-1) && *x == (xlen-1))
@@ -2715,12 +2724,13 @@ int buy()
     return cnt;
 }
 
-int h_spot(int map[][50][50], int *x, int *y, int *p_loc, int *pp_x, int *pp_y,int bag[bag_z][bag_y][bag_x] ,Player *player)
+void h_spot(int map[][50][50], int *x, int *y, int *p_loc, int *pp_x, int *pp_y, Player *player)
 {
     char select = 0;  
     system("clear");
     enter(10);
-    if((player->hp >= player->max_hp))
+
+    if (player->hp >= player->max_hp)
     {
         system("clear");
         enter(10);
@@ -2728,38 +2738,116 @@ int h_spot(int map[][50][50], int *x, int *y, int *p_loc, int *pp_x, int *pp_y,i
         printf("          마을로 돌아갑니다.");
         fflush(stdout);
         sleep(2);
-        *x = *pp_x;
-        *y = *pp_y;
     }
-    else{
+    else
+    {
         printf("          성소를 이용하시겠습니까?\n          1. 예\t\t2. 아니오\n\n");
         select = getch();
-        if (select = 49)
+        if (select == 49) 
         {
             system("clear");
             enter(10);
             printf("          체력이 모두 회복 되었습니다.\n\n");
-            printf("          %.1lf 회복되었습니다. ", (player->max_hp - player->hp));
+            printf("          %.1lf 회복되었습니다.\n", (double)(player->max_hp - player->hp));
             fflush(stdout);
-            player->hp = player->max_hp ;
+            player->hp = player->max_hp;
             sleep(2);
-            *x = *pp_x;
-            *y = *pp_y;
-
         }
         else 
         {
             system("clear");
             enter(10);
             printf("          마을로 돌아갑니다.");
+            fflush(stdout);
+            sleep(2);
+        }        
+    }
+
+
+    *x = *pp_x;
+    *y = *pp_y;
+}
+
+int lve_spot(int map[][50][50], int *x, int *y, int *p_loc, int *pp_x, int *pp_y, Player *player)
+{
+    srand(time(NULL));  
+    system("clear");
+    enter(10); 
+    printf("          레벨 인첸트를 이용하시겠습니까? (500원)\n          1. 예\t\t2. 아니오\n\n");
+    char select = getch();
+    if (select == 49)
+    {
+        if(player->gold >= 500)
+        {
+            int num = rand()% 21+(-10);
+            int cnt = -(player->level - 1);
+            if(player->level + num > 0)
+            {                
+                lv_s_up(num, player);
+                sleep(2);
+                *x = *pp_x;
+                *y = *pp_y;
+            }                      
+            else 
+            {
+                printf("          레벨이 1이 됩니다.\n\n");
+                printf("          레벨이 %d 감소합니다.\n\n",cnt);
+                printf("          체력이 %d 감소합니다.\n\n", (cnt*50));      // 레벨당 50
+                printf("          마나가 %d 감소합니다.\n\n", (cnt*30));      // 레벨당 30
+                printf("          공격력이 %d 감소합니다.\n\n", (cnt*10));    // 레벨당 10
+                fflush(stdout);
+                player->level = 1;
+                player->hp += (cnt*50);
+                player->max_hp += (cnt*50);
+                player->mp += (cnt*30);
+                player->max_mp += (cnt*30);
+                player->dmg += (cnt*10);
+                player->gold -= 500;
+                sleep(2);
+                *x = *pp_x;
+                *y = *pp_y;
+            }              
+        }
+        else 
+        {
+            system("clear");
+            enter(10);
+            printf("          금액이 부족합니다. 마을로 돌아갑니다.\n");
+            printf("          마을로 돌아갑니다.");
+            fflush(stdout);
             sleep(2);
             *x = *pp_x;
             *y = *pp_y;
-
         }        
-    }   
-}
+    } 
+}  
 
+void lv_s_up(int num, Player *player)
+{
+    if(num > 0)
+    {
+        printf("          레벨이 %d 증가합니다.\n\n",num);
+        printf("          체력이 %d 증가합니다.\n\n", (num*50));      // 레벨당 50
+        printf("          마나가 %d 증가합니다.\n\n", (num*30));      // 레벨당 30
+        printf("          공격력이 %d 증가합니다.\n\n", (num*10));    // 레벨당 10
+        fflush(stdout);
+    }
+    else if(num < 0)
+    {
+        printf("          레벨이 %d 감소합니다.\n\n",num);
+        printf("          체력이 %d 감소합니다.\n\n", (num*50));      // 레벨당 50
+        printf("          마나가 %d 감소합니다.\n\n", (num*30));      // 레벨당 30
+        printf("          공격력이 %d 감소합니다.\n\n", (num*10));    // 레벨당 10
+        fflush(stdout);
+    }
+    player->level += num;
+    player->hp += (num*50);
+    player->max_hp += (num*50);
+    player->mp += (num*30);
+    player->max_mp += (num*30);
+    player->dmg += (num*10);
+    player->gold -= 500;
+}
 
 
 
