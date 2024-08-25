@@ -5,434 +5,229 @@
 #include <termios.h>
 #include <time.h>
 
-#define bag_x 6
-#define bag_y 4
-#define bag_z 11
-// sleep 함수를 사용하기 위해 필요
-int getch();
-int p_bag(int bag[bag_z][bag_y][bag_x]);
-int p_bag_print(int bag[bag_z][bag_y][bag_x],int *x, int *y);
+int num = 0;    
+int slot(int *mon,int *p1, int *p2, int *p3, int *p4, int *p5, int *p6, int *s_play);
+int slot_intro();
+int num_dot(int num);
 void enter(int num);
-void potion();  // 포션 
-void tel_scl(); // 순간이동 주문서
-
-int main()
+int main(void)                                                   
 {
-    int bag[bag_z][bag_y][bag_x] = {1, 1, 1, 1, 1};
-    char select = 0;
+    srand(time(NULL));
+    int money = 10000;
+    int slot_play = 0;
+    int prize1 = 0, prize2 = 0, prize3 = 0, prize4 = 0, prize5 = 0, prize6 = 0;
+    enter(15);
+    slot_intro();
+    slot(&money,&prize1, &prize2, &prize3, &prize4, &prize5, &prize6, &slot_play);
 
-    // printf("          0 : 무기\t\t  3 : 장갑  \n\n");
-    // printf("          1 : 갑옷\t\t  4 : 망토  \n\n");
-    // printf("          2 : 신발\t\t  5 : 장갑  \n\n");
-
-    p_bag(bag);
-
-    printf("가방을 열려면 I를 누르세요");
-    while (1)
-    {
-        select = getch();
-        if (select == 73 || select == 105)
-            p_bag_print(bag,&loc_x, &loc_y);
-    }
+    printf("최종 결과 - 잔액: %d원\n", money);
+    printf("1등: %d번, 2등: %d번, 3등: %d번, 4등: %d번, 5등: %d번, 6등: %d번\n", prize1, prize2, prize3, prize4, prize5, prize6);
+    printf("총 도박 횟수: %d \n", slot_play);
     return 0;
 }
 
-int p_bag(int bag[bag_z][bag_y][bag_x])
+int slot(int *mon, int *p1, int *p2, int *p3, int *p4, int *p5, int *p6, int *s_play)
 {
-    srand(time(NULL));
-    for (int i = 0; i <= 100000; i++)
-    {
-        int eqp = rand() % 6;
-        int tier = rand() % 4;
-        int star = rand() % 11;
+    int in_money = 0;
+    int prize[5] = {10, 5, 3, 2, 1}; 
+    int num2;
 
-        bag[star][tier][eqp] += 1;
-    }
-}
+    while(1) {
+        printf("현재 잔액: %d원\n", *mon);
+        if (*mon <= 0) {
+            printf("돈이 모두 소진되었습니다. 게임을 종료합니다.\n");
+            break;
+        }
 
-int p_bag_print(int bag[bag_z][bag_y][bag_x],int *x, int *y)
-{
-    char select = 0;
-    while (1)
-    {
-        enter(10);
-        printf("          1 : 장비\n\n");
-        printf("          2 : 소비\n\n");
-        select = getch();
-        if (select == 49)
+        printf("배팅할 금액을 입력하세요 (0을 입력하면 종료): ");
+        scanf("%d", &in_money);
+
+        if (in_money == 0) {
+            printf("게임을 종료합니다.\n");
+            break;
+        }
+
+        if (in_money > *mon) {
+            printf("잔액이 부족합니다. 다시 입력하세요.\n");
+            continue;
+        }
+
+        *mon -= in_money;
+        num = (rand() % 100) + 1;
+        for(int cnt = 0; cnt<10; cnt++)
         {
             system("clear");
-            enter(10);
-            printf("          0 : 무기\t\t  3 : 장갑  \n\n");
-            printf("          1 : 갑옷\t\t  4 : 망토  \n\n");
-            printf("          2 : 신발\t\t  5 : 장갑  \n\n");
-            select = getch();
+            num2 = rand()%6 +1;
+            enter(15);
+            num_dot(num2);
+            usleep(300000);
+            
+        }
+        system("clear");
 
-            if (select == 48)
-            {
-                system("clear");
-                enter(10);
-                printf("          1 : 기본검 \n\n");
-                printf("          2 : 장검 \n\n");
-                printf("          3 : 일본도 \n\n");
-                printf("          4 : 싸울아비장검 \n\n");
-                select = getch();
-
-                if (select == 49)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 기본검 +%d강 %d개\n\n", i, i, bag[i][0][0]);
-                    printf("          10번은 ~를 입력하시오.");
-                }
-                else if (select == 50)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 장검 +%d강 %d개\n\n", i, i, bag[i][1][0]);
-                    printf("          10 번은 ~를 입력하시오.");
-                }
-                else if (select == 51)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 일본도 +%d강 %d개\n\n", i, i, bag[i][2][0]);
-                    printf("          10 번은 ~를 입력하시오.");
-                }
-                else if (select == 52)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 싸울아비장검 +%d강 %d개\n\n", i, i, bag[i][3][0]);
-                    printf("          10 번은 ~를 입력하시오.");
-                }
-            }
-            else if (select == 49)
-            {
-                system("clear");
-                enter(10);
-                printf("          1 : 기본갑빠 \n\n");
-                printf("          2 : 반팔갑빠 \n\n");
-                printf("          3 : 후드갑빠 \n\n");
-                printf("          4 : 용갑빠 \n\n");
-                select = getch();
-                if (select == 49)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 기본갑빠 +%d강 %d개\n\n", i, i, bag[i][0][1]);
-                    printf("          10번은 ~를 입력하시오.");
-                }
-                else if (select == 50)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 반팔갑빠 +%d강 %d개\n\n", i, i, bag[i][1][1]);
-                    printf("          10 번은 ~를 입력하시오.");
-                }
-                else if (select == 51)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 후드갑빠 +%d강 %d개\n\n", i, i, bag[i][2][1]);
-                    printf("          10 번은 ~를 입력하시오.");
-                }
-                else if (select == 52)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 용갑빠 +%d강 %d개\n\n", i, i, bag[i][3][1]);
-                    printf("          10 번은 ~를 입력하시오.");
-                }
-            }
-            else if (select == 50)
-            {
-                system("clear");
-                enter(10);
-                printf("          1 : 기본장화 \n\n");
-                printf("          2 : 슬리퍼 \n\n");
-                printf("          3 : 운동화 \n\n");
-                printf("          4 : 에어조단 \n\n");
-                select = getch();
-                if (select == 49)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 기본장화 +%d강 %d개\n\n", i, i, bag[i][0][2]);
-                    printf("          10번은 ~를 입력하시오.");
-                }
-                else if (select == 50)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 슬리퍼 +%d강 %d개\n\n", i, i, bag[i][1][2]);
-                    printf("          10 번은 ~를 입력하시오.");
-                }
-                else if (select == 51)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 운동화 +%d강 %d개\n\n", i, i, bag[i][2][2]);
-                    printf("          10 번은 ~를 입력하시오.");
-                }
-                else if (select == 52)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 에어조단 +%d강 %d개\n\n", i, i, bag[i][3][2]);
-                    printf("          10 번은 ~를 입력하시오.");
-                }
-            }
-            else if (select == 51)
-            {
-                system("clear");
-                enter(10);
-                printf("          1 : 기본장갑 \n\n");
-                printf("          2 : 고무장갑 \n\n");
-                printf("          3 : 면장갑 \n\n");
-                printf("          4 : 가죽장갑 \n\n");
-                select = getch();
-                if (select == 49)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 기본장갑 +%d강 %d개\n\n", i, i, bag[i][0][3]);
-                    printf("          10번은 ~를 입력하시오.");
-                }
-                else if (select == 50)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 고무장갑 +%d강 %d개\n\n", i, i, bag[i][1][3]);
-                    printf("          10 번은 ~를 입력하시오.");
-                }
-                else if (select == 51)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 면장갑 +%d강 %d개\n\n", i, i, bag[i][2][3]);
-                    printf("          10 번은 ~를 입력하시오.");
-                }
-                else if (select == 52)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 가죽장갑 +%d강 %d개\n\n", i, i, bag[i][3][3]);
-                    printf("          10 번은 ~를 입력하시오.");
-                }
-            }
-            else if (select == 52)
-            {
-                system("clear");
-                enter(10);
-                printf("          1 : 기본망토 \n\n");
-                printf("          2 : 면망토 \n\n");
-                printf("          3 : 비단망토\n\n");
-                printf("          4 : 방탄망토 \n\n");
-                select = getch();
-                if (select == 49)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 기본망토 +%d강 %d개\n\n", i, i, bag[i][0][4]);
-                    printf("          10번은 ~를 입력하시오.");
-                }
-                else if (select == 50)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 면망토 +%d강 %d개\n\n", i, i, bag[i][1][4]);
-                    printf("          10 번은 ~를 입력하시오.");
-                }
-                else if (select == 51)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 비단망토 +%d강 %d개\n\n", i, i, bag[i][2][4]);
-                    printf("          10 번은 ~를 입력하시오.");
-                }
-                else if (select == 52)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 방탄망토 +%d강 %d개\n\n", i, i, bag[i][3][4]);
-                    printf("          10 번은 ~를 입력하시오.");
-                }
-            }
-            else if (select == 53)
-            {
-                system("clear");
-                enter(10);
-                printf("          1 : 기본마스크 \n\n");
-                printf("          2 : K80마스크 \n\n");
-                printf("          3 : K94마스크\n\n");
-                printf("          4 : 타이거마스크 \n\n");
-                select = getch();
-                if (select == 49)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 기본마스크 +%d강 %d개\n\n", i, i, bag[i][0][5]);
-                    printf("          10번은 ~를 입력하시오.");
-                }
-                else if (select == 50)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : K80마스크 +%d강 %d개\n\n", i, i, bag[i][1][5]);
-                    printf("          10 번은 ~를 입력하시오.");
-                }
-                else if (select == 51)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : K90마스크 +%d강 %d개\n\n", i, i, bag[i][2][5]);
-                    printf("          10 번은 ~를 입력하시오.");
-                }
-                else if (select == 52)
-                {
-                    system("clear");
-                    enter(3);
-                    for (int i = 0; i <= 10; i++)
-                        printf("          %d : 타이거마스크 +%d강 %d개\n\n", i, i, bag[i][3][5]);
-                    printf("          10 번은 ~를 입력하시오.");
-                }
-            }
+        if (num <= 3) {
+            (*p1)++;
+            (*s_play)++;
+            *mon += in_money * prize[0];
+            enter(15);
+            num_dot(1);
+            printf("1등 당첨! 상금: %d원\n", in_money * prize[0]);
+        }
+        else if (num <= 9) {
+            (*p2)++;
+            (*s_play)++;
+            *mon += in_money * prize[1];
+            enter(15);
+            num_dot(num);
+            printf("2등 당첨! 상금: %d원\n", in_money * prize[1]);
+        }
+        else if (num <= 18) {
+            (*p3)++;
+            (*s_play)++;
+            *mon += in_money * prize[2];
+            enter(15);
+            num_dot(3);
+            printf("3등 당첨! 상금: %d원\n", in_money * prize[2]);
+        }
+        else if (num <= 32) {
+            (*p4)++;
+            (*s_play)++;
+            *mon += in_money * prize[3];
+            enter(15);
+            num_dot(4);
+            printf("4등 당첨! 상금: %d원\n", in_money * prize[3]);
+        }
+        else if (num <= 60) {
+            (*p5)++;
+            (*s_play)++;
+            *mon += in_money * prize[4];
+            enter(15);
+            num_dot(5);
+            printf("5등 당첨! 상금: %d원\n", in_money * prize[4]);
+        }
+        else {
+            (*p6)++;
+            (*s_play)++;
+            enter(15);
+            num_dot(6);
+            printf("꽝! 상금을 받지 못했습니다.\n");
         }
 
-        else if (select == 50)
-        {
-            system("clear");
-            enter(10);
-            printf("          1 : 물약\n\n");
-            printf("          2 : 순간이동 주문서\n\n");
-            printf("          3 : 마을이동 주문서\n\n");
-            select = getch();
-
-            if (select == 49)
-            {
-                potion(x, y);
-            }
-            else if(select == 50)
-            {
-                tel_scl(x, y);
-            }
-            else if(select == 51)
-            {
-                printf("마을로 이동하빈다");
-            }
-        }
-        else
-            {
-            *x = *x;
-            *y = *y;
-            }
+        printf("현재 잔액: %d원\n", *mon);
     }
 }
-void tel_scl()
+
+int slot_intro()
 {
-    char select;
+    printf("   ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+    printf("   ⬜️ 🟥 🟥 🟥 🟥 🟥 ⬜️   ⬜️ 🟥 🟥 🟥 🟥 🟥 ⬜️   ⬜️ 🟥 🟥 🟥 🟥 🟥 ⬜️ \n");
+    printf("   ⬜️ 🟥 ⬜️ ⬜️ ⬜️ 🟥 ⬜️   ⬜️ 🟥 ⬜️ ⬜️ ⬜️ 🟥 ⬜️   ⬜️ 🟥 ⬜️ ⬜️ ⬜️ 🟥 ⬜️ \n");
+    printf("   ⬜️ 🟥 ⬜️ ⬜️ 🟥 ⬜️ ⬜️   ⬜️ 🟥 ⬜️ ⬜️ 🟥 ⬜️ ⬜️   ⬜️ 🟥 ⬜️ ⬜️ 🟥 ⬜️ ⬜️ \n");
+    printf("   ⬜️ ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ \n");
+    printf("   ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️ \n");
+    printf("   ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️ \n");
+    printf("   ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️ \n");
+    printf("   ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️   ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+    usleep(1500000);
     system("clear");
-    enter(10);
-    printf("          1 : 순간이동 주문서(저장)\n\n");
-    printf("          2 : 순간이동 주문서(이동)\n\n");
-    select = getch();
-    if (select == 49)
-    {
-        system("clear");
-        enter(10);
-        printf("          현재 좌표를 저장합니다.\n");
+}
+int num_dot(int num)
+{   
+    switch(num){
+        case 1:
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬛️ ⬛️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬛️ ⬛️ ⬛️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            break;
+        case 2:
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬛️ ⬛️ ⬛️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            break;
+        case 3:
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            break;
+        case 4:
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬛️ ⬜️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬛️ ⬛️ ⬛️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            break;
+        case 5:
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬛️ ⬛️ ⬛️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            break;
+        case 6:
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ ⬛️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("          ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            break;
+        case 7:
+            printf("⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("⬜️ 🟥 🟥 🟥 🟥 🟥 ⬜️ \n");
+            printf("⬜️ 🟥 ⬜️ ⬜️ ⬜️ 🟥 ⬜️ \n");
+            printf("⬜️ 🟥 ⬜️ ⬜️ 🟥 ⬜️ ⬜️ \n");
+            printf("⬜️ ⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ \n");
+            printf("⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("⬜️ ⬜️ 🟥 ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            break;
+        case 8:
+            printf("⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            printf("⬜️ ⬜️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("⬜️ ⬛️ ⬜️ ⬛️ ⬜️ ⬛️ ⬜️ \n");
+            printf("⬜️ ⬛️ ⬜️ ⬛️ ⬜️ ⬜️ ⬜️ \n");
+            printf("⬜️ ⬜️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("⬜️ ⬜️ ⬜️ ⬛️ ⬜️ ⬛️ ⬜️ \n");
+            printf("⬜️ ⬛️ ⬜️ ⬛️ ⬜️ ⬛️ ⬜️ \n");
+            printf("⬜️ ⬜️ ⬛️ ⬛️ ⬛️ ⬜️ ⬜️ \n");
+            printf("⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ ⬜️ \n");
+            break;
+
 
     }
-    else if(select == 50)
-    {
-        system("clear");
-        enter(10);
-        printf("          저장된 좌표를 이동합니다.\n");
-    }
 }
-
-void potion()
-{
-    char select;
-    system("clear");
-    enter(10);
-    printf("          1 : 물약\n");
-    printf("          2 : 순간이동 주문서\n");
-    printf("          3 : 마을이동 주문서\n");
-    select = getch();
-
-    if (select == 49)
-    {
-        system("clear");
-        enter(10);
-        printf("          1 : 빨간 물약\n");
-        printf("          2 : 주황 물약\n");
-        printf("          3 : 맑은 물약\n");
-        printf("          4 : 고농도 물약\n");
-        select = getch();
-
-        if (select == 49)
-        {
-            printf("체력 + 30\n");
-        }
-        else if (select == 50)
-        {
-            printf("체력 + 50\n");
-        }
-        else if (select == 51)
-        {
-            printf("체력 + 70\n");
-        }
-        else if (select == 52)
-        {
-            printf("체력 + 150\n");
-        }
-        sleep(1);
-    }
-}
-
-int getch()
-{
-    int c;
-    struct termios oldattr, newattr;
-
-    tcgetattr(STDIN_FILENO, &oldattr); // 현재 터미널 설정 읽음
-    newattr = oldattr;
-    newattr.c_lflag &= ~(ICANON | ECHO);        // CANONICAL과 ECHO 끔
-    newattr.c_cc[VMIN] = 1;                     // 최소 입력 문자 수를 1로 설정
-    newattr.c_cc[VTIME] = 0;                    // 최소 읽기 대기 시간을 0으로 설정
-    tcsetattr(STDIN_FILENO, TCSANOW, &newattr); // 터미널에 설정 입력
-    c = getchar();                              // 키보드 입력 읽음
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldattr); // 원래의 설정으로 복구
-    return c;
-}
-
 void enter(int num)
 {
-    for (int i = 0; i < num; i++)
+    for(int i = 0; i < num; i++)
         printf("\n");
 }
