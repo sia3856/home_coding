@@ -47,6 +47,7 @@ struct player
     int t_portal;
     struct p_skill skill_list[5];
 };
+
 struct item
 {
     int hpot_1;   //hp포션 1
@@ -123,6 +124,7 @@ void tel_scl(int *x, int *y,int *p_loc,int *s_loc_x, int *s_loc_y,int *s_loc_z,I
 int skill_use(int map[][50][50], Monster mon_list[], Player *player, Monster *p_monster, int *x, int *y, int *p_loc, int *pp_x, int *pp_y, char p_string[], char p_string1[], char p_string2[], char p_string3[], char p_string4[], char p_string5[]);
 void use_hpotion(double *hp, double *m_hp, int *potion_count, int amount, const char *type);
 void use_mpotion(int *mp, int *m_mp, int *potion_count, int amount, const char *type );
+int h_spot(int map[][50][50], int *x, int *y, int *p_loc, int *pp_x, int *pp_y,int bag[bag_z][bag_y][bag_x] ,Player *player);
 
 int main(void)
 {
@@ -722,14 +724,19 @@ int main(void)
                         shop(map, &loc_x, &loc_y, &present_loc, &pp_loc_x, &pp_loc_y,bag,&player,&item);
                     }
                 }
+                else if (map[present_loc][y][x] == 14 )
+                {
+                    if (loc_y == y && loc_x == x)
+                    {
+                        h_spot(map, &loc_x, &loc_y, &present_loc, &pp_loc_x, &pp_loc_y,bag,&player);
+                    }
+                }
             }
         }
           
     }
     return 0;
 }
-
-
 
 void player_move(int map[][50][50], int xlen, int ylen, int zlen, int *x, int *y, int *p_loc,int bag[bag_z][bag_y][bag_x],Player *player,int *s_loc_x, int *s_loc_y,int *s_loc_z,Item *item)
 {
@@ -787,7 +794,6 @@ void player_move(int map[][50][50], int xlen, int ylen, int zlen, int *x, int *y
     }
 }
   
-
 int map_move(int xlen, int ylen, int *x, int *y, int *p_loc,Item *item)
 {
     if (*p_loc < 7 && *y == (ylen-1) && *x == (xlen-1))
@@ -1009,6 +1015,7 @@ int p_fight (int map[][50][50], Monster mon_list[], Player *player, Monster *p_m
         }
     }
 }
+
 int m_fight (int map[][50][50], Monster mon_list[], Player *player, Monster *p_monster, int *x, int *y, int *p_loc, int *pp_x, int *pp_y, char m_string[], char m_string1[], char m_string2[], char m_string3[], char m_string4[], char m_string5[])
 {
     int mon_rannum;
@@ -1152,7 +1159,6 @@ int skill_use(int map[][50][50], Monster mon_list[], Player *player, Monster *p_
     strcat(p_string5, p_string4);
     strcpy(p_string, p_string5);
 }
-
 
 void monster_make(int map[][50][50], int xlen, int ylen, int zlen, int *x, int *y, int *p_loc, int *pp_loc)
 {   
@@ -1413,8 +1419,6 @@ void slot(int map[][50][50], int *x, int *y, int *p_loc, int *pp_x, int *pp_y, i
     }
 }
 
-
-
 void map_print(int map[][50][50], int xlen, int ylen, int zlen, int *x, int *y, int *p_loc)
 {
     switch (map[*p_loc][*y][*x])
@@ -1601,7 +1605,6 @@ void map_print(int map[][50][50], int xlen, int ylen, int zlen, int *x, int *y, 
     }
 }
 
-
 int getch()
 {
     int c;
@@ -1623,6 +1626,7 @@ void enter(int num)
     for(int i = 0; i < num; i++)
         printf("\n");
 }
+
 int slot_intro()
 {
     enter(8);
@@ -1643,6 +1647,7 @@ int slot_intro()
 
     system("clear");
 }
+
 int num_dot(int num)
 {   
     switch(num){
@@ -2137,6 +2142,7 @@ int p_bag_print(int bag[bag_z][bag_y][bag_x],int *x, int *y,int *p_loc,Player *p
             }
     }
 }
+
 void tel_scl(int *x, int *y,int *p_loc,int *s_loc_x, int *s_loc_y,int *s_loc_z,Item *item)
 {
     char select;
@@ -2699,8 +2705,6 @@ int shop(int map[][50][50], int *x, int *y, int *p_loc, int *pp_x, int *pp_y,int
 
 }
 
-    
-
 int buy()
 {
     int cnt = 0;
@@ -2710,9 +2714,51 @@ int buy()
     scanf("%d", &cnt);
     return cnt;
 }
-    
-    
 
+int h_spot(int map[][50][50], int *x, int *y, int *p_loc, int *pp_x, int *pp_y,int bag[bag_z][bag_y][bag_x] ,Player *player)
+{
+    char select = 0;  
+    system("clear");
+    enter(10);
+    if((player->hp >= player->max_hp))
+    {
+        system("clear");
+        enter(10);
+        printf("          회복이 필요 없습니다.\n\n");
+        printf("          마을로 돌아갑니다.");
+        fflush(stdout);
+        sleep(2);
+        *x = *pp_x;
+        *y = *pp_y;
+    }
+    else{
+        printf("          성소를 이용하시겠습니까?\n          1. 예\t\t2. 아니오\n\n");
+        select = getch();
+        if (select = 49)
+        {
+            system("clear");
+            enter(10);
+            printf("          체력이 모두 회복 되었습니다.\n\n");
+            printf("          %.1lf 회복되었습니다. ", (player->max_hp - player->hp));
+            fflush(stdout);
+            player->hp = player->max_hp ;
+            sleep(2);
+            *x = *pp_x;
+            *y = *pp_y;
+
+        }
+        else 
+        {
+            system("clear");
+            enter(10);
+            printf("          마을로 돌아갑니다.");
+            sleep(2);
+            *x = *pp_x;
+            *y = *pp_y;
+
+        }        
+    }   
+}
 
 
 
