@@ -16,3 +16,9 @@ homestudy/RinEZ/testing
 homestudy/RinEZ/코딩용.c
 homestudy/RinEZ/코딩용
 .gitignore
+.mysql_history
+.mysql_history.TMP
+titanic.csv
+titanic.csv:Zone.Identifier
+test.txt
+homestudy/RinEZ/real.c:Zone.Identifier
