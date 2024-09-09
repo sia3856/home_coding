@@ -35,8 +35,8 @@ int main()
             printf("회원가입 - 비밀번호 입력: ");
             scanf("%s", newUser.password);
 
-            fwrite(&newUser, sizeof(User), 1, fp);
-            fclose(fp);
+            fwrite(&newUser, sizeof(User), 1, fp);       //  위에 입력받은걸 입력ㄹ
+            fclose(fp);  // 파일닫기
             printf("회원가입 완료!\n");
         }
         else if (cnt == 2)
@@ -58,9 +58,9 @@ int main()
             scanf("%s", inputPw);
 
             User user;
-            while (fread(&user, sizeof(User), 1, fp))
+            while (fread(&user, sizeof(User), 1, fp))   //  파일을 읽는동안
             {
-                if (strcmp(user.id, inputId) == 0 && strcmp(user.password, inputPw) == 0)
+                if (strcmp(user.id, inputId) == 0 && strcmp(user.password, inputPw) == 0)    //  구조체 아이디 비버 비교
                 {
                     fclose(fp);
                     printf("로그인 성공\n");
