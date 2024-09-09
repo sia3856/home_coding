@@ -22,7 +22,7 @@ int main()
 
         if (cnt == 1)
         {
-            FILE *fp = fopen("test.txt", "a");
+            FILE *fp = fopen("test.txt", "a");  // test파일을 열고 없으면 생성 
             if (fp == NULL)
             {
                 printf("파일을 열 수 없습니다.\n");
@@ -41,7 +41,7 @@ int main()
         }
         else if (cnt == 2)
         {
-            FILE *fp = fopen("test.txt", "r");
+            FILE *fp = fopen("test.txt", "r");   //  test 파일을 읽기모드로 실행
             if (fp == NULL)
             {
                 printf("파일을 열 수 없습니다.\n");
@@ -58,9 +58,9 @@ int main()
             scanf("%s", inputPw);
 
             User user;
-            while (fread(&user, sizeof(User), 1, fp))   //  파일을 읽는동안
+            while (fread(&user, sizeof(User), 1, fp))   //  파일을 읽는동안~~~
             {
-                if (strcmp(user.id, inputId) == 0 && strcmp(user.password, inputPw) == 0)    //  구조체 아이디 비버 비교
+                if (strcmp(user.id, inputId) == 0 && strcmp(user.password, inputPw) == 0)    //  구조체 아이디 비버ㄴ 비교
                 {
                     fclose(fp);
                     printf("로그인 성공\n");
