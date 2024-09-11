@@ -1,25 +1,17 @@
-        else if(select == 52 && m_s == 10)
-        {
-            system("clear");
-            printf("═════════════════════════════════════════════════════════════════════════════════════════\n");
-            enter(13);
-            printf("\t\t\t%s +10 강입니다. \n\n",(m_inf)[m_t].name);
-            printf("\t\t\t강화가 필요없습니다.");
-            enter(12);
-            printf("═════════════════════════════════════════════════════════════════════════════════════════\n");
-            sleep(1);
-        }
-        else if (select== 52 && m_s != 10)
-        {
-            system("clear");
-            printf("═════════════════════════════════════════════════════════════════════════════════════════\n");
-            enter(11);
-            printf("\t\t\t엘릭서 하나를 소모하여 \n\n");
-            printf("\t\t\t%s +%d 강을 강화합니다. \n\n",(m_inf)[m_t].name, m_s);
-            printf("\t\t\t%s +%d 강이 됩니다. \n\n",(m_inf)[m_t].name, m_s+1);
-            enter(10);
-            printf("═════════════════════════════════════════════════════════════════════════════════════════\n");
-            sleep(1);
-            eqp->m_s = m_s+1;
-            item->elx -= 1; 
-        }
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <pthread.h>
+
+void main()
+{
+    printf("%ld",strlen("010-6396-1584\n"));
+
+
+
+
+}
