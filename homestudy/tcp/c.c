@@ -53,10 +53,18 @@ void * send_msg(void * arg)   // send thread main
 	while(1) 
 	{
 		fgets(msg, BUF_SIZE, stdin);
-		if(!strcmp(msg,"q\n")||!strcmp(msg,"Q\n")) 
+		if(!strcmp(msg,"Q\n")||!strcmp(msg,"q\n")||!strcmp(msg,"/로그아웃\n")) 
 		{
+			sprintf(name_msg,"%s",msg);
+			write(sock, name_msg, strlen(name_msg));
+			printf("로그아웃을 합니다.\n");
 			close(sock);
 			exit(0);
+		}
+		else if(!strcmp(msg,"/help\n")||!strcmp(msg,"/?\n"))
+		{
+			printf("\t\t\t명령어\n\n\t귓속말 : /w 상대방닉네임 메시지\n\n\t쪽지함 : /쪽지\n\n\t방이동 : /r\n\n\t회원탈퇴 : /회원탈퇴\n\n\t채팅종료 : /로그아웃\n\n");
+			continue;
 		}
 		sprintf(name_msg,"%s",msg);
 		write(sock, name_msg, strlen(name_msg));
